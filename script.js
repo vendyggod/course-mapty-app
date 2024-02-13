@@ -17,12 +17,32 @@ if (navigator.geolocation) {
       const { latitude } = position.coords;
       const { longitude } = position.coords;
 
-      var map = L.map('map').setView([56.326944, 44.0075], 12);
+      const coords = [latitude, longitude];
 
-      L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:
-          '&copy; <a rel="nofollow" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      const map = L.map('map').setView(coords, 12);
+
+      L.tileLayer('http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        attribution: null,
       }).addTo(map);
+
+      L.marker(coords).addTo(map).bindPopup('You are here!').openPopup();
+
+      map.on('click', function (mapEvent) {
+        const { lat, lng } = mapEvent.latlng;
+
+        L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(
+            L.popup({
+              maxWidth: 250,
+              minWidth: 100,
+              autoClose: false,
+              closeOnClick: false,
+              className: 'running-popup',
+            })
+          )
+          .openPopup();
+      });
     },
     function () {
       alert(`Coudn't get your location :(`);
