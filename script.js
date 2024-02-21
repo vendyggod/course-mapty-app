@@ -71,10 +71,19 @@ class App {
 
   // Constructor exucutes immidiately as the page loads (permission - YES - constructor's code)
   constructor() {
+    // Get user's position
     this._getLocation();
+
+    // Get data from local storage
+    this._getLocalStorage();
+
+    // Attaching event handlers
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
-    containerWorkouts.addEventListener('click', this._moveMapToWorkout);
+    containerWorkouts.addEventListener(
+      'click',
+      this._moveMapToWorkout.bind(this)
+    );
   }
 
   // Get user's browser access of it's location
@@ -103,6 +112,11 @@ class App {
 
     // Handling click on a map
     this.#map.on('click', this._showForm.bind(this));
+
+    // Load markers of workouts in local storage
+    this.#workouts.forEach(workout => {
+      this._renderWorkoutMarker(workout);
+    });
   }
 
   _showForm(mapE) {
@@ -178,6 +192,9 @@ class App {
 
     // Hide form and clear input fields
     this._hideForm();
+
+    // Setting the local storage to save workouts
+    this._setLocalStorage();
   }
 
   _renderWorkoutMarker(workout) {
@@ -253,7 +270,40 @@ class App {
 
   _moveMapToWorkout(e) {
     const workoutEl = e.target.closest('.workout');
-    console.log(workoutEl);
+    const workout = this.#workouts.find(
+      workout => workout.id === workoutEl.dataset.id
+    );
+
+    if (!workoutEl) return;
+
+    this.#map.setView(workout.coords, 15, {
+      animate: true,
+      pan: {
+        duration: 0.5,
+      },
+    });
+  }
+
+  _setLocalStorage() {
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+
+  _getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem('workouts'));
+
+    if (!data) return;
+
+    this.#workouts = data;
+
+    this.#workouts.forEach(workout => {
+      this._renderWorkout(workout);
+    });
+  }
+
+  // App.reset() to reset the data from local storage
+  reset() {
+    localStorage.removeItem('workouts');
+    location.reload();
   }
 }
 const app = new App();
